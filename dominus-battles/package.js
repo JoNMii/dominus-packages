@@ -1,6 +1,6 @@
 Package.describe({
   name: 'danimal:dominus-battles',
-  version: '1.0.0',
+  version: '1.0.1',
   git: 'https://github.com/dan335/dominus-packages',
   documentation: 'README.md',
   summary: 'Battles for Dominus - https://dominusgame.net'
@@ -9,6 +9,7 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.2');
   api.use([
+    'mongo',
     'momentjs:moment@2.11.2'
   ]);
   api.addFiles([

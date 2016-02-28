@@ -410,10 +410,10 @@ BattleRound.prototype.updateUnitBonus = function(army) {
   var enemyPercentage = this.getEnemyUnitPercentage(army);
 
   var bonus = {};
-  bonus.footmen = army.basePower.totalNoCats * army.percentage['footmenNoCats'] * enemyPercentage['pikemenNoCats'] * sBattles.unitBonusMultiplier;
-  bonus.archers = army.basePower.totalNoCats * army.percentage['archersNoCats'] * enemyPercentage['footmenNoCats'] * sBattles.unitBonusMultiplier;
-  bonus.pikemen = army.basePower.totalNoCats * army.percentage['pikemenNoCats'] * enemyPercentage['cavalryNoCats'] * sBattles.unitBonusMultiplier;
-  bonus.cavalry = army.basePower.totalNoCats * army.percentage['cavalryNoCats'] * (enemyPercentage['footmenNoCats'] + enemyPercentage['archersNoCats']) * sBattles.unitBonusMultiplier;
+  bonus.footmen = army.basePower.totalNoCats * army.percentage['footmenNoCats'] * enemyPercentage['pikemenNoCats'] * _s.battles.unitBonusMultiplier;
+  bonus.archers = army.basePower.totalNoCats * army.percentage['archersNoCats'] * enemyPercentage['footmenNoCats'] * _s.battles.unitBonusMultiplier;
+  bonus.pikemen = army.basePower.totalNoCats * army.percentage['pikemenNoCats'] * enemyPercentage['cavalryNoCats'] * _s.battles.unitBonusMultiplier;
+  bonus.cavalry = army.basePower.totalNoCats * army.percentage['cavalryNoCats'] * (enemyPercentage['footmenNoCats'] + enemyPercentage['archersNoCats']) * _s.battles.unitBonusMultiplier;
 
   // catapults
   // if there is an enemy castle of village in this hex then catapults get bonus
@@ -676,15 +676,15 @@ BattleRound.prototype.findPowerToLose = function(army) {
   if (army.dif > 0) {
     // win
 
-    powerToLose = sBattles.battle_power_lost_per_round + (self.finalPowerAllArmies/500)
+    powerToLose = _s.battles.battle_power_lost_per_round + (self.finalPowerAllArmies/500)
     powerToLose = powerToLose * adjustForNumPeopleInBattle;
     powerToLose = Math.min(powerToLose, self.getEnemyFinalPower(army));
-    powerToLose = powerToLose * sBattles.battle_power_lost_winner_ratio;
+    powerToLose = powerToLose * _s.battles.battle_power_lost_winner_ratio;
 
   } else {
     // tie or lose
 
-    powerToLose = sBattles.battle_power_lost_per_round + (self.finalPowerAllArmies/500)
+    powerToLose = _s.battles.battle_power_lost_per_round + (self.finalPowerAllArmies/500)
     powerToLose = powerToLose * adjustForNumPeopleInBattle
 
   }
