@@ -1,6 +1,6 @@
 Package.describe({
   name: 'danimal:dominus-rankings',
-  version: '1.0.0',
+  version: '1.0.1',
   git: 'https://github.com/dan335/dominus-packages',
   documentation: 'README.md',
   summary: 'Overall player rankings for Dominus - https://dominusgame.net'
@@ -9,10 +9,12 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
   api.use([
-    'ecmascript',
-    'danimal:cue@1.1.8'
+    'ecmascript'
   ]);
   api.addFiles([
     'findPlayerRankings.js'
+  ], 'server');
+  api.export([
+    'dRankings'
   ], 'server');
 });

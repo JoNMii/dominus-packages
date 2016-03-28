@@ -131,7 +131,7 @@ BattleArmy.prototype.updateUser = function() {
       if (Meteor.isServer) {
         // this might fail on client
         // when subscription is ready battle will re-run
-        console.error('could not find player in BattleArmy.updateUser', this, player);
+        //console.error('could not find player in BattleArmy.updateUser', this, player);
       }
     }
   }
@@ -178,6 +178,10 @@ BattleArmy.prototype.isEnemy = function(otherArmy) {
     }
   }
 
+  if (this.unitType == 'capital') {
+    var enemyTypes = ['enemy'];
+  }
+
   if (_.indexOf(enemyTypes, relation) != -1) {
     return true;
   }
@@ -211,6 +215,10 @@ BattleArmy.prototype.isAlly = function(otherArmy) {
     } else {
       var allyTypes = ['mine', 'king', 'direct_lord', 'lord', 'vassal', 'direct_vassal'];
     }
+  }
+
+  if (this.unitType == 'capital') {
+    var allyTypes = [];
   }
 
   if (_.indexOf(allyTypes, relation) != -1) {

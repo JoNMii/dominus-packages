@@ -14,14 +14,6 @@
 
 var pointsForWinning = 500;
 
-
-Cue.addJob('updateOverallPlayerRankings', {retryOnError:false, maxMs:1000*60*2}, function(task, done) {
-    updateOverallPlayerRankings();
-    done();
-});
-
-
-
 let gameRankToPoints = function(rankInGame) {
   let points = Math.max(51 - rankInGame, 0);
 
@@ -45,231 +37,232 @@ let gameRankToPoints = function(rankInGame) {
 }
 
 
+var fut = Npm.require('fibers/future');
 
-var updateOverallPlayerRankings = function() {
+dRankings = {
+  updateOverallPlayerRankings: function() {
 
-  var fut = Npm.require('fibers/future');
+    let hasBulk = false;
+    let bulk = Meteor.users.rawCollection().initializeUnorderedBulkOp();
 
-  let hasBulk = false;
-  let bulk = Meteor.users.rawCollection().initializeUnorderedBulkOp();
+    // wins and num Games
 
-  // wins and num Games
+    Meteor.users.find({}, {fields: {_id:1}}).forEach(function(user) {
 
-  Meteor.users.find({}, {fields: {_id:1}}).forEach(function(user) {
+      let rankingRegular = {
+    		 wins: 0,
+    		 numGames: 0,
+         overallRank: 0,
+         numVassalsRank: 0,
+         networthRank: 0,
+         incomeRank: 0,
+         overallPoints: 0,
+         numVassalsPoints: 0,
+         networthPoints: 0,
+         incomePoints: 0,
+    	};
 
-    let rankingRegular = {
-  		 wins: 0,
-  		 numGames: 0,
-       overallRank: 0,
-       numVassalsRank: 0,
-       networthRank: 0,
-       incomeRank: 0,
-       overallPoints: 0,
-       numVassalsPoints: 0,
-       networthPoints: 0,
-       incomePoints: 0,
-  	};
+    	let rankingPro = {
+        wins: 0,
+        numGames: 0,
+        overallRank: 0,
+        numVassalsRank: 0,
+        networthRank: 0,
+        incomeRank: 0,
+        overallPoints: 0,
+        numVassalsPoints: 0,
+        networthPoints: 0,
+        incomePoints: 0,
+    	};
 
-  	let rankingPro = {
-      wins: 0,
-      numGames: 0,
-      overallRank: 0,
-      numVassalsRank: 0,
-      networthRank: 0,
-      incomeRank: 0,
-      overallPoints: 0,
-      numVassalsPoints: 0,
-      networthPoints: 0,
-      incomePoints: 0,
-  	};
+      Players.find({userId:user._id}, {fields: {gameId:1, wonGame:1}}).forEach(function(player) {
+        let game = Games.findOne(player.gameId, {fields: {hasEnded:1, isProOnly:1}});
 
-    Players.find({userId:user._id}, {fields: {gameId:1, wonGame:1}}).forEach(function(player) {
-      let game = Games.findOne(player.gameId, {fields: {hasEnded:1, isProOnly:1}});
+        if (game.hasEnded) {
+          let wins = 0;
+          let overallPoints = 0;
+          if (player.wonGame) {
+            wins = 1;
+            overallPoints = pointsForWinning;
+          }
 
-      if (game.hasEnded) {
-        let wins = 0;
-        let overallPoints = 0;
-        if (player.wonGame) {
-          wins = 1;
-          overallPoints = pointsForWinning;
+          if (game.isProOnly) {
+            rankingPro.numGames++;
+            rankingPro.wins += wins;
+            rankingPro.overallPoints += overallPoints;
+          } else {
+            rankingRegular.numGames++;
+            rankingRegular.wins += wins;
+            rankingRegular.overallPoints += overallPoints;
+          }
         }
+      });
 
-        if (game.isProOnly) {
-          rankingPro.numGames++;
-          rankingPro.wins += wins;
-          rankingPro.overallPoints += overallPoints;
-        } else {
-          rankingRegular.numGames++;
-          rankingRegular.wins += wins;
-          rankingRegular.overallPoints += overallPoints;
-        }
-      }
+      bulk.find({_id:user._id}).updateOne({$set: {rankingRegular:rankingRegular, rankingPro:rankingPro}});
+      hasBulk = true;
     });
 
-    bulk.find({_id:user._id}).updateOne({$set: {rankingRegular:rankingRegular, rankingPro:rankingPro}});
-    hasBulk = true;
-  });
+    // results
 
-  // results
+    Games.find({hasEnded:true}, {fields: {isProOnly:1, results:1}}).forEach(function(game) {
+      game.results.numVassals.forEach(function(u) {
+        let points = gameRankToPoints(u.rank);
 
-  Games.find({hasEnded:true}, {fields: {isProOnly:1, results:1}}).forEach(function(game) {
-    game.results.numVassals.forEach(function(u) {
-      let points = gameRankToPoints(u.rank);
-
-      if (points > 0) {
-        if (game.isProOnly) {
-          bulk.find({_id:u.userId}).updateOne({$inc: {"rankingPro.numVassalsPoints":points}});
-          hasBulk = true;
-        } else {
-          bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.numVassalsPoints":points}});
-          hasBulk = true;
+        if (points > 0) {
+          if (game.isProOnly) {
+            bulk.find({_id:u.userId}).updateOne({$inc: {"rankingPro.numVassalsPoints":points}});
+            hasBulk = true;
+          } else {
+            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.numVassalsPoints":points}});
+            hasBulk = true;
+          }
         }
-      }
-    });
+      });
 
-    game.results.income.forEach(function(u) {
-      let points = gameRankToPoints(u.rank);
+      game.results.income.forEach(function(u) {
+        let points = gameRankToPoints(u.rank);
 
-      if (points > 0) {
-        if (game.isProOnly) {
-          bulk.find({_id:u.userId}).updateOne({$inc:{"rankingPro.incomePoints":points}});
-          hasBulk = true;
-        } else {
-          bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.incomePoints":points}});
-          hasBulk = true;
+        if (points > 0) {
+          if (game.isProOnly) {
+            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingPro.incomePoints":points}});
+            hasBulk = true;
+          } else {
+            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.incomePoints":points}});
+            hasBulk = true;
+          }
         }
-      }
-    });
+      });
 
-    game.results.networth.forEach(function(u) {
-      let points = gameRankToPoints(u.rank);
+      game.results.networth.forEach(function(u) {
+        let points = gameRankToPoints(u.rank);
 
-      if (points > 0) {
-        if (game.isProOnly) {
-          bulk.find({_id:u.userId}).updateOne({$inc:{"rankingPro.networthPoints":points}});
-          hasBulk = true;
-        } else {
-          bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.networthPoints":points}});
-          hasBulk = true;
+        if (points > 0) {
+          if (game.isProOnly) {
+            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingPro.networthPoints":points}});
+            hasBulk = true;
+          } else {
+            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.networthPoints":points}});
+            hasBulk = true;
+          }
         }
-      }
+      });
     });
-  });
 
-  var future = new fut();
-  if (hasBulk) {
-    bulk.execute({}, function(error, result) {
-      if (error) {
-        console.error(error);
-      }
-      future.return(result);
-    });
-  }
-  future.wait();
-
-
-  // overall points
-
-  let hasOBulk = false;
-  let oBulk = Meteor.users.rawCollection().initializeUnorderedBulkOp();
-
-  Meteor.users.find({"rankingRegular.numGames": {$gt:0}}, {fields: {rankingRegular:1}}).forEach(function(user) {
-    if (user.rankingRegular) {
-      let overall = user.rankingRegular.networthPoints + user.rankingRegular.incomePoints + user.rankingRegular.numVassalsPoints;
-      oBulk.find({_id:user._id}).updateOne({$inc: {"rankingRegular.overallPoints":overall}});
-      hasOBulk = true;
+    var future = new fut();
+    if (hasBulk) {
+      bulk.execute({}, function(error, result) {
+        if (error) {
+          console.error(error);
+        }
+        future.return(result);
+      });
     }
-  });
+    future.wait();
 
-  Meteor.users.find({"rankingPro.numGames": {$gt:0}}, {fields: {rankingPro:1}}).forEach(function(user) {
-    if (user.rankingPro) {
-      let overall = user.rankingPro.networthPoints + user.rankingPro.incomePoints + user.rankingPro.numVassalsPoints;
-      oBulk.find({_id:user._id}).updateOne({$inc: {"rankingPro.overallPoints":overall}});
-      hasOBulk = true;
+
+    // overall points
+
+    let hasOBulk = false;
+    let oBulk = Meteor.users.rawCollection().initializeUnorderedBulkOp();
+
+    Meteor.users.find({"rankingRegular.numGames": {$gt:0}}, {fields: {rankingRegular:1}}).forEach(function(user) {
+      if (user.rankingRegular) {
+        let overall = user.rankingRegular.networthPoints + user.rankingRegular.incomePoints + user.rankingRegular.numVassalsPoints;
+        oBulk.find({_id:user._id}).updateOne({$inc: {"rankingRegular.overallPoints":overall}});
+        hasOBulk = true;
+      }
+    });
+
+    Meteor.users.find({"rankingPro.numGames": {$gt:0}}, {fields: {rankingPro:1}}).forEach(function(user) {
+      if (user.rankingPro) {
+        let overall = user.rankingPro.networthPoints + user.rankingPro.incomePoints + user.rankingPro.numVassalsPoints;
+        oBulk.find({_id:user._id}).updateOne({$inc: {"rankingPro.overallPoints":overall}});
+        hasOBulk = true;
+      }
+    });
+
+    var oFuture = new fut();
+    if (hasOBulk) {
+      oBulk.execute({}, function(error, result) {
+  	    if (error) {
+  	      console.error(error);
+  	    }
+        oFuture.return(result);
+  	  });
     }
-  });
+    oFuture.wait();
 
-  var oFuture = new fut();
-  if (hasOBulk) {
-    oBulk.execute({}, function(error, result) {
-	    if (error) {
-	      console.error(error);
-	    }
-      oFuture.return(result);
-	  });
+    // ranking
+
+    let hasRBulk = false;
+    let rBulk = Meteor.users.rawCollection().initializeUnorderedBulkOp();
+
+    let rank = 1;
+    Meteor.users.find({"rankingPro.numVassalsPoints": {$gt:0}}, {fields: {"rankingPro.numVassalsPoints":1}, sort: {"rankingPro.numVassalsPoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.numVassalsRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    rank = 1;
+    Meteor.users.find({"rankingPro.incomePoints": {$gt:0}}, {fields: {"rankingPro.incomePoints":1}, sort: {"rankingPro.incomePoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.incomeRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    rank = 1;
+    Meteor.users.find({"rankingPro.networthPoints": {$gt:0}}, {fields: {"rankingPro.networthPoints":1}, sort: {"rankingPro.networthPoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.networthRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    rank = 1;
+    Meteor.users.find({"rankingPro.overallPoints": {$gt:0}}, {fields: {"rankingPro.overallPoints":1}, sort: {"rankingPro.overallPoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.overallRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    // regular
+    rank = 1;
+    Meteor.users.find({"rankingRegular.numVassalsPoints": {$gt:0}}, {fields: {"rankingRegular.numVassalsPoints":1}, sort: {"rankingRegular.numVassalsPoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.numVassalsRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    rank = 1;
+    Meteor.users.find({"rankingRegular.incomePoints": {$gt:0}}, {fields: {"rankingRegular.incomePoints":1}, sort: {"rankingRegular.incomePoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.incomeRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    rank = 1;
+    Meteor.users.find({"rankingRegular.networthPoints": {$gt:0}}, {fields: {"rankingRegular.networthPoints":1}, sort: {"rankingRegular.networthPoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.networthRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    rank = 1;
+    Meteor.users.find({"rankingRegular.overallPoints": {$gt:0}}, {fields: {"rankingRegular.overallPoints":1}, sort: {"rankingRegular.overallPoints":-1}}).forEach(function(user) {
+      rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.overallRank":rank}});
+      hasRBulk = true;
+      rank++;
+    });
+
+    var rFuture = new fut();
+    if (hasRBulk) {
+      rBulk.execute({}, function(error, result) {
+  	    if (error) {
+  	      console.error(error);
+  	    }
+        rFuture.return(result);
+  	  });
+    }
+    rFuture.wait();
   }
-  oFuture.wait();
-
-  // ranking
-
-  let hasRBulk = false;
-  let rBulk = Meteor.users.rawCollection().initializeUnorderedBulkOp();
-
-  let rank = 1;
-  Meteor.users.find({"rankingPro.numVassalsPoints": {$gt:0}}, {fields: {"rankingPro.numVassalsPoints":1}, sort: {"rankingPro.numVassalsPoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.numVassalsRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  rank = 1;
-  Meteor.users.find({"rankingPro.incomePoints": {$gt:0}}, {fields: {"rankingPro.incomePoints":1}, sort: {"rankingPro.incomePoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.incomeRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  rank = 1;
-  Meteor.users.find({"rankingPro.networthPoints": {$gt:0}}, {fields: {"rankingPro.networthPoints":1}, sort: {"rankingPro.networthPoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.networthRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  rank = 1;
-  Meteor.users.find({"rankingPro.overallPoints": {$gt:0}}, {fields: {"rankingPro.overallPoints":1}, sort: {"rankingPro.overallPoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.overallRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  // regular
-  rank = 1;
-  Meteor.users.find({"rankingRegular.numVassalsPoints": {$gt:0}}, {fields: {"rankingRegular.numVassalsPoints":1}, sort: {"rankingRegular.numVassalsPoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.numVassalsRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  rank = 1;
-  Meteor.users.find({"rankingRegular.incomePoints": {$gt:0}}, {fields: {"rankingRegular.incomePoints":1}, sort: {"rankingRegular.incomePoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.incomeRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  rank = 1;
-  Meteor.users.find({"rankingRegular.networthPoints": {$gt:0}}, {fields: {"rankingRegular.networthPoints":1}, sort: {"rankingRegular.networthPoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.networthRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  rank = 1;
-  Meteor.users.find({"rankingRegular.overallPoints": {$gt:0}}, {fields: {"rankingRegular.overallPoints":1}, sort: {"rankingRegular.overallPoints":-1}}).forEach(function(user) {
-    rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.overallRank":rank}});
-    hasRBulk = true;
-    rank++;
-  });
-
-  var rFuture = new fut();
-  if (hasRBulk) {
-    rBulk.execute({}, function(error, result) {
-	    if (error) {
-	      console.error(error);
-	    }
-      rFuture.return(result);
-	  });
-  }
-  rFuture.wait();
 }

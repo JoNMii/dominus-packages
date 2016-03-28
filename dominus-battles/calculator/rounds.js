@@ -148,21 +148,23 @@ BattleRound.prototype.handleCapital = function() {
   var armiesThatTookCapital = [];
 
   self.armies.forEach(function(army) {
-    if (army.unitType == 'army') {
-      if (!army.destroyed) {
-        armiesThatTookCapital.push(army);
+    if (army.unitType != 'capital') {
+      if (army.unitType == 'army') {
+        if (!army.destroyed) {
+          armiesThatTookCapital.push(army);
+        }
+      } else {
+        console.error('Army in handleCapital that is not an army', army, self);
       }
-    } else {
-      console.error('Army in handleCapital that is not an army', army, self);
     }
   });
 
-  var tookCastlePlayerd = null;
+  var tookCastlePlayerId = null;
   armiesThatTookCapital.forEach(function(army) {
-    if (!tookCastlePlayerd) {
-      tookCastlePlayerd = army.playerId;
+    if (!tookCastlePlayerId) {
+      tookCastlePlayerId = army.playerId;
     } else {
-      if (tookCastlePlayerd != army.playerId) {
+      if (tookCastlePlayerId != army.playerId) {
         console.error('More than one player took capital in handleCapital', armiesThatTookCapital, self);
         return false;
       }
@@ -249,7 +251,7 @@ BattleRound.prototype.isBattleIsOver = function() {
   var self = this;
 
   var numAliveArmies = 0;
-  _.each(self.armies, function(army) {
+  self.armies.forEach(function(army) {
     if (!army.destroyed) {
       numAliveArmies++;
     }
@@ -265,7 +267,17 @@ BattleRound.prototype.isBattleIsOver = function() {
     if (!army.destroyed) {
       _.each(army.enemies, function(enemy) {
         if (!enemy.destroyed) {
-          someoneHasAnEnemy = true;
+          if (enemy.unitType == 'castle') {
+
+            // if castle has no soldiers then it's not an enemy
+            // might be a better way to do this
+            if (enemy.numUnits) {
+              someoneHasAnEnemy = true;
+            }
+
+          } else {
+            someoneHasAnEnemy = true;
+          }
         }
       })
     }
@@ -277,11 +289,11 @@ BattleRound.prototype.isBattleIsOver = function() {
 
 
 
-BattleRound.prototype.isThereACastleOrVillageInBattle = function() {
+BattleRound.prototype.isThereABuildingInBattle = function() {
   var self = this;
   var found = false;
   _.each(self.armies, function(army) {
-    if (army.unitType == 'castle' || army.unitType == 'village') {
+    if (army.unitType == 'castle' || army.unitType == 'village' || army.unitType == 'capital') {
       found = true;
     }
   })
@@ -294,7 +306,7 @@ BattleRound.prototype.checkThatThereIsOnlyOneDefender = function() {
   var self = this;
 
   var defender = null;
-  _.each(self.armies, function(army) {
+  self.armies.forEach(function(army) {
     if (!army.isAttacker) {
       if (defender) {
         console.error('should only be one defender');
@@ -334,17 +346,17 @@ BattleRound.prototype.findDefender = function() {
     army.isAttacker = true;
   })
 
-  // if there is a castle or village then they are defender
+  // if there is a castle or village or capital then they are defender
   _.each(self.armies, function(army) {
-    if (army.unitType == 'castle' || army.unitType == 'village') {
+    if (army.unitType == 'castle' || army.unitType == 'village' || army.unitType == 'capital') {
       army.isAttacker = false;
       defenderFound = true;
     }
   })
 
-  // if army is on their own castle or village then they are defender
+  // if army is on their own castle, capital or village then they are defender
   if(!defenderFound) {
-    if (self.castle || self.village) {
+    if (self.castle || self.village || self.capital) {
       _.each(self.armies, function(army) {
         if (self.castle) {
           if (self.castle.playerId == army.playerId) {
@@ -355,6 +367,13 @@ BattleRound.prototype.findDefender = function() {
 
         if (self.village) {
           if (self.village.playerId == army.playerId) {
+            army.isAttacker = false;
+            defenderFound = true;
+          }
+        }
+
+        if (self.capital) {
+          if (self.capital.playerId == army.playerId) {
             army.isAttacker = false;
             defenderFound = true;
           }
@@ -382,10 +401,10 @@ BattleRound.prototype.findDefender = function() {
 BattleRound.prototype.checkOrderOfArrival = function() {
   var self = this;
 
-  // is there a castle or village here
+  // is there a castle, capital or village here
   // if so then they're first
   _.each(self.armies, function(army) {
-    if (army.unitType == 'castle' || army.unitType == 'village') {
+    if (army.unitType == 'castle' || army.unitType == 'village' || army.unitType == 'capital') {
       army.orderOfArrival = -10;
     }
   });
