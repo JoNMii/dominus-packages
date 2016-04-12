@@ -4,8 +4,6 @@
 //    numGames: 0,
 //    numVassalsRank: 0,
 //    numVassalsPoints: 0,
-//    networthRank: 0,
-//    networthPoints: 0,
 //    incomeRank: 0,
 //    incomePoints: 0,
 //    overallPoints: 0
@@ -54,11 +52,9 @@ dRankings = {
     		 numGames: 0,
          overallRank: 0,
          numVassalsRank: 0,
-         networthRank: 0,
          incomeRank: 0,
          overallPoints: 0,
          numVassalsPoints: 0,
-         networthPoints: 0,
          incomePoints: 0,
     	};
 
@@ -67,11 +63,9 @@ dRankings = {
         numGames: 0,
         overallRank: 0,
         numVassalsRank: 0,
-        networthRank: 0,
         incomeRank: 0,
         overallPoints: 0,
         numVassalsPoints: 0,
-        networthPoints: 0,
         incomePoints: 0,
     	};
 
@@ -132,20 +126,6 @@ dRankings = {
           }
         }
       });
-
-      game.results.networth.forEach(function(u) {
-        let points = gameRankToPoints(u.rank);
-
-        if (points > 0) {
-          if (game.isProOnly) {
-            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingPro.networthPoints":points}});
-            hasBulk = true;
-          } else {
-            bulk.find({_id:u.userId}).updateOne({$inc:{"rankingRegular.networthPoints":points}});
-            hasBulk = true;
-          }
-        }
-      });
     });
 
     var future = new fut();
@@ -167,7 +147,7 @@ dRankings = {
 
     Meteor.users.find({"rankingRegular.numGames": {$gt:0}}, {fields: {rankingRegular:1}}).forEach(function(user) {
       if (user.rankingRegular) {
-        let overall = user.rankingRegular.networthPoints + user.rankingRegular.incomePoints + user.rankingRegular.numVassalsPoints;
+        let overall = user.rankingRegular.incomePoints + user.rankingRegular.numVassalsPoints;
         oBulk.find({_id:user._id}).updateOne({$inc: {"rankingRegular.overallPoints":overall}});
         hasOBulk = true;
       }
@@ -175,7 +155,7 @@ dRankings = {
 
     Meteor.users.find({"rankingPro.numGames": {$gt:0}}, {fields: {rankingPro:1}}).forEach(function(user) {
       if (user.rankingPro) {
-        let overall = user.rankingPro.networthPoints + user.rankingPro.incomePoints + user.rankingPro.numVassalsPoints;
+        let overall = user.rankingPro.incomePoints + user.rankingPro.numVassalsPoints;
         oBulk.find({_id:user._id}).updateOne({$inc: {"rankingPro.overallPoints":overall}});
         hasOBulk = true;
       }
@@ -212,13 +192,6 @@ dRankings = {
     });
 
     rank = 1;
-    Meteor.users.find({"rankingPro.networthPoints": {$gt:0}}, {fields: {"rankingPro.networthPoints":1}, sort: {"rankingPro.networthPoints":-1}}).forEach(function(user) {
-      rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.networthRank":rank}});
-      hasRBulk = true;
-      rank++;
-    });
-
-    rank = 1;
     Meteor.users.find({"rankingPro.overallPoints": {$gt:0}}, {fields: {"rankingPro.overallPoints":1}, sort: {"rankingPro.overallPoints":-1}}).forEach(function(user) {
       rBulk.find({_id:user._id}).updateOne({$set: {"rankingPro.overallRank":rank}});
       hasRBulk = true;
@@ -236,13 +209,6 @@ dRankings = {
     rank = 1;
     Meteor.users.find({"rankingRegular.incomePoints": {$gt:0}}, {fields: {"rankingRegular.incomePoints":1}, sort: {"rankingRegular.incomePoints":-1}}).forEach(function(user) {
       rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.incomeRank":rank}});
-      hasRBulk = true;
-      rank++;
-    });
-
-    rank = 1;
-    Meteor.users.find({"rankingRegular.networthPoints": {$gt:0}}, {fields: {"rankingRegular.networthPoints":1}, sort: {"rankingRegular.networthPoints":-1}}).forEach(function(user) {
-      rBulk.find({_id:user._id}).updateOne({$set: {"rankingRegular.networthRank":rank}});
       hasRBulk = true;
       rank++;
     });
