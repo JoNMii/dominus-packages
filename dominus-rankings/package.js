@@ -1,6 +1,6 @@
 Package.describe({
   name: 'danimal:dominus-rankings',
-  version: '1.0.1',
+  version: '1.0.2',
   git: 'https://github.com/dan335/dominus-packages',
   documentation: 'README.md',
   summary: 'Overall player rankings for Dominus - https://dominusgame.net'
