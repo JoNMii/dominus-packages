@@ -1,0 +1,67 @@
+<template name="help_armies">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <a data-toggle="collapse" data-parent="#accordion_help" href="#help-armies">
+                Armies
+            </a>
+        </div>
+        <div id="help-armies" class="panel-collapse collapse">
+            <div class="panel-body">
+{{#markdown}}
+
+Use armies to protect your castle and villages and to gain vassals.
+
+#### Footmen
+
+Offense: {{s.army.stats.footmen.offense}} &nbsp; Defense: {{s.army.stats.footmen.defense}} &nbsp; Speed: {{s.army.stats.footmen.speed}}
+Footmen are good all-around soldiers.  Bonus against pikemen.
+
+#### Archers
+
+Offense: {{s.army.stats.archers.offense}} &nbsp; Defense: {{s.army.stats.archers.defense}} &nbsp; Speed: {{s.army.stats.archers.speed}}
+Good at defense. Bonus against footmen.
+
+#### Pikemen
+
+Offense: {{s.army.stats.pikemen.offense}} &nbsp; Defense: {{s.army.stats.pikemen.defense}} &nbsp; Speed: {{s.army.stats.pikemen.speed}}
+Good at defense. Bonus against cavalry.
+
+#### Cavalry
+
+Offense: {{s.army.stats.cavalry.offense}} &nbsp; Defense: {{s.army.stats.cavalry.defense}} &nbsp; Speed: {{s.army.stats.cavalry.speed}}
+Good at offense. Bonus against archers and footmen.
+
+#### Catapults
+
+Offense: {{s.army.stats.catapults.offense}} &nbsp; Defense: {{s.army.stats.catapults.defense}} &nbsp; Speed: {{s.army.stats.catapults.speed}}
++{{s.army.stats.catapults.bonus_against_buildings}} offense when attacking a castle, capital or village.
+
+If your army enters hex that is also occupied by an enemy army, village or castle then they will attack it.
+
+### Bonuses
+
+There are four different kinds of soldiers.  Some gain bonuses when fighting.
+
+Footmen recieve a bonus against pikemen. Archers recieve a bonus against footmen.  Pikemen recieve a bonus against cavalry.  Calvary recieve a bonus against archers and footmen.
+
+When an archer fights a footman because the archer has a bonus against footmen the archer is {{bonusAmount}}x as powerful.
+
+Catapults have a different kind of bonus.  Catapults have a very low offense and defense.  When attacking a castle, capital or village their offense is multiplied by their bonus.  If 1 catapult attacks an army it will have an offense of {{s.army.stats.catapults.offense}} but when that one catapult attacks a castle it will have an offense of {{s.army.stats.catapults.bonus_against_buildings}}.
+
+### Speed
+
+Armies move at the speed of their slowest unit.
+
+Footmen have a speed of {{s.army.stats.footmen.speed}}, archers have a speed of {{s.army.stats.archers.speed}}, pikemen have a speed of {{s.army.stats.pikemen.speed}} and cavalry have a speed of {{s.army.stats.cavalry.speed}}.
+
+An army of cavalry will travel {{s.army.stats.cavalry.speed}} hexes per hour but an army of cavalry and footmen will travel at {{s.army.stats.footmen.speed}} hexes per hour.
+
+### Ally Bonuses
+
+Armies that are on the same hex as your vassal's castle or village get a {{sCastles.ally_defense_bonus}}x bonus.
+
+{{/markdown}}
+            </div>
+        </div>
+    </div>
+</template>

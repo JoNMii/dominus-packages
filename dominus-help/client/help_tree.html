@@ -1,0 +1,30 @@
+<template name="help_tree">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <a data-toggle="collapse" data-parent="#accordion_help" href="#help-lords">
+        Lords, Vassals, Kings, and the Dominus
+      </a>
+    </div>
+    <div id="help-lords" class="panel-collapse collapse">
+      <div class="panel-body">
+{{#markdown}}
+
+If you attack someone's castle and win then you become their lord and they become your vassal.
+
+Lords receive {{floatToPercentage s.income.percentToLords}}% of their vassal's income.  If there are more than 5 people above the vassal then their lords each get {{floatToPercentage s.income.maxToLords}}% / number_of_people_above instead of {{floatToPercentage s.income.percentToLords}}%.
+
+Vassals do not lose the resources that their lord receive.  If someone takes your castle and becomes your lord then your income will still be the same.  Vassals do not lose the {{floatToPercentage s.income.percentToLords}}% that their lords receive.
+
+You can send gold to your vassals.  You cannot send gold to your enemies or anyone above you in the tree.  To send someone gold click on the "Send Gold" button at their castle.
+
+If you do not have a lord then you are a king.  If you have a lord and you attack their castle and win then their lord will become your lord.
+
+You cannot attack anyone below you in the tree.  These will have a yellow or orange square or flag.
+
+You can attack the castle of people above you in the tree but you cannot attack their armies or villages.  These will have a blue or purple square or flag.
+
+{{/markdown}}
+      </div>
+    </div>
+  </div>
+</template>
