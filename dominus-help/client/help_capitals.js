@@ -3,6 +3,10 @@ Template.help_capitals.helpers({
     return _s;
   },
 
+  incomeInterval: function() {
+    return _gs.capitals(Session.get('gameId'), 'incomeInterval');
+  },
+
   income: function() {
     return _gs.capitals(Session.get('gameId'), 'income');
   }

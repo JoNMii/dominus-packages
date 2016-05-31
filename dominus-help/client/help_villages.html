@@ -9,9 +9,9 @@
             <div class="panel-body">
 {{#markdown}}
 
-Villages give you resources.  They produce resources from the 6 surrounding hexes every {{resource_interval}}.
+Villages give you resources.  They produce resources from the 6 surrounding hexes every {{date_duration_humanize incomeInterval}}.
 
-You can build up to {{max_can_have}} villages at one time.
+You can build up to {{maxVillages}} villages at one time.
 
 Building a village costs {{sVillages.cost.level1.grain}} of each resource and takes {{date_duration_humanize sVillages.cost.level1.timeToBuild}} to build.  Level 1 villages can hire only archers.  They can be upgraded to produce more types of soldiers.
 
@@ -19,7 +19,7 @@ Upgrading a village to level 2 costs {{sVillages.cost.level2.grain}} of each res
 
 Upgrading a village to level 3 costs {{sVillages.cost.level3.grain}} of each resource and takes {{date_duration_humanize sVillages.cost.level3.timeToBuild}}.  Level 3 villages can hire soldiers of any type.
 
-While upgrading villages do not receive resources and cannot hire soldiers.
+While upgrading, villages do not receive resources and cannot hire soldiers.
 
 Villages have a {{sVillages.defense_bonus}}x defense bonus.
 

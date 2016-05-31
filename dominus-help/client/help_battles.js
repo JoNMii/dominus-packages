@@ -1,6 +1,6 @@
 Template.help_battles.helpers({
   bonusAmount: function() {
-    return _s.army.unitBonusMultiplier + 1;
+    return _s.battles.unitBonusMultiplier;
   },
 
   sVillages: function() {

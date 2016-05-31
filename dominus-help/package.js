@@ -1,6 +1,6 @@
 Package.describe({
   name: 'danimal:dominus-help',
-  version: '1.0.0',
+  version: '1.0.1',
   summary: 'Help for Dominus',
   git: 'https://github.com/dan335/dominus-packages',
   documentation: 'README.md'
@@ -37,6 +37,7 @@ Package.onUse(function(api) {
     'client/help_panel.js',
     'client/help_panel.less',
     'client/help_tree.html',
+    'client/help_tree.js',
     'client/help_tutorials.html',
     'client/help_villages.html',
     'client/help_villages.js',
