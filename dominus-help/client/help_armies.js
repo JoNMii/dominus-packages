@@ -17,5 +17,9 @@ Template.help_armies.helpers({
     let finalArch = _s.armies.stats.archers.defense;
     let finalPike = basePike + basePike * _s.battles.unitBonusMultiplier;
     return finalPike + finalArch;
+  },
+
+  stats: function() {
+    return _gs.armies(Session.get('gameId'), 'stats');
   }
 })

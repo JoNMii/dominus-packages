@@ -1,6 +1,6 @@
 Package.describe({
   name: 'danimal:dominus-help',
-  version: '1.0.1',
+  version: '1.0.2',
   summary: 'Help for Dominus',
   git: 'https://github.com/dan335/dominus-packages',
   documentation: 'README.md'

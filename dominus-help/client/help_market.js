@@ -9,5 +9,9 @@ Template.help_market.helpers({
 
   income: function() {
     return _gs.castles(Session.get('gameId'), 'income');
+  },
+
+  incomeInterval: function() {
+    return _gs.castles(Session.get('gameId'), 'incomeInterval');
   }
 })
